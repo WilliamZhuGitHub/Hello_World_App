@@ -8,27 +8,30 @@ import java.util.ArrayList;
 public class ChatRoomServer  
 { 
     static ArrayList<ClientHandler> connected = new ArrayList<ClientHandler>();//connected clients
+    static ArrayList<ClientHandler> waiting = new ArrayList<ClientHandler>();//connected clients
     static ArrayList<ClientHandler> matched =  new ArrayList<ClientHandler>();//matched clients
-    static Randomizer r = new Randomizer(connected);
+    static Randomizer r = new Randomizer(waiting);
     ServerSocket ss;
 
     public ChatRoomServer(int port) throws IOException
     {
     	ss = new ServerSocket(port);
     }
-    public ServerSocket getSS()
+    public ServerSocket getSS()//returns client server socket
     {
     	return ss;
     }
-    public ArrayList<ClientHandler> getArray()
+    public ArrayList<ClientHandler> getArray()//returns all clients connected to server
     {
     	return connected;
     }
-    public static void sendAll(String message)
+    public static void broadcast(String message)//sends from server to all connected clients
     {
+    	//iterates through all clients in the connected array
     	for(int i = 0; i < connected.size(); i ++)
     	{
     		try {
+    			//sends message to all clients in the array
     			connected.get(i).getOs().writeBytes(message + "\r\n");
     		}catch (IOException e) {
 				e.printStackTrace();
@@ -52,7 +55,8 @@ public class ChatRoomServer
         { 
             // Accept the incoming request 
             sock = ss.accept();
-            r.setArr(connected);
+            r.setArr(waiting);//updates randomizer's array with new waiting clients
+            
             DataInputStream is = new DataInputStream(sock.getInputStream()); 
             DataOutputStream os = new DataOutputStream(sock.getOutputStream()); 
 
@@ -60,12 +64,24 @@ public class ChatRoomServer
             ClientHandler ch = new ClientHandler(sock, is, os, server); 
 
             Thread t = new Thread(ch);
-            connected.add(ch);
+            connected.add(ch);//adds client to connected array
+            waiting.add(ch);//adds client to waiting array
+            
             ClientHandler m = r.match();
+            //if the client is matched
             if(m != null)
             {
-            	connected.remove(m);
-            	connected.remove(m.getPartner());
+            	//removes matched partners from waiting array
+            	waiting.remove(m);
+            	waiting.remove(m.getPartner());
+            	
+            	//adds matched partners to connected array
+            	matched.add(m);
+            	matched.add(m.getPartner());
+            	
+            	//sets the status of both clients to matched
+            	m.setMatched();
+            	m.getPartner().setMatched();
             }
             t.start();
         } 

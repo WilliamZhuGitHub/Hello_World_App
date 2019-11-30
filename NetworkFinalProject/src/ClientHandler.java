@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -20,12 +21,11 @@ class ClientHandler implements Runnable
     Socket s; 
     boolean isloggedin;
     ChatRoomServer server;
-
     private ClientHandler partner;
     private boolean matched;
     
+      
     public ClientHandler(Socket s, DataInputStream is, DataOutputStream os, ChatRoomServer server, ClientHandler partner) { 
-    
         this.is = is; 
         this.os = os; 
         this.s = s; 
@@ -45,7 +45,10 @@ class ClientHandler implements Runnable
     {
     	return os;
     }
-
+    public void setMatched()
+    {
+    	this.matched = true;
+    }
     public ClientHandler getPartner()
     {
     	return this.partner;
@@ -55,10 +58,13 @@ class ClientHandler implements Runnable
     	this.partner = ch;
     	this.matched = true;
     }
-
     public void send(String message) throws IOException
     {
     	os.writeBytes(message + "\r\n");
+    }
+    public void sendPartner(String message)throws IOException
+    {
+    	partner.getOs().writeBytes(message);
     }
     public void sendAll(ArrayList<ClientHandler> arr, String message, String name)
     {
@@ -85,13 +91,12 @@ class ClientHandler implements Runnable
     	}
     }
     public void run() { 
-
+    	
     	try {
-
-			send("Welcome to the chat! Please enter your name: ");
+    		
+			send("Welcome to Hello_World! Please enter your name: ");
 			name = in.readLine();
 			send("Hello " + name + ", if you ever want to quit just enter {quit}");
-
 			if(matched == false)
 			{
 				send("Please wait while we connect you to a partner");
@@ -101,15 +106,14 @@ class ClientHandler implements Runnable
 				send("You are connected with " + this.partner.name);
 			}
 			
-
 			String message = in.readLine();
-
-
+			
+	        
 	        while (true)  
 	        { 
 	            sendPartner(message);
 	            message = in.readLine();
-
+	            
 	            if(message.equals("{quit}"))
 	            {
 	            	send(name + " has left the chat");
@@ -122,12 +126,13 @@ class ClientHandler implements Runnable
 	            	break;
 	            }
 	        }
-
+			
 		} catch (IOException e1) {
 			System.out.println(name + " has left the chat");
 			allMessage(" has left the chat", server.getArray(), name);
 		}	
-
-
+	
+              
     } 
-}  
+} 
+
