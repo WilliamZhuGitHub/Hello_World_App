@@ -20,9 +20,8 @@ class ClientHandler implements Runnable
     Socket s; 
     boolean isloggedin;
     ChatRoomServer server;
-    private ClientHandler partner;
-      
-    public ClientHandler(Socket s, DataInputStream is, DataOutputStream os, ChatRoomServer server, ClientHandler partner) { 
+
+    public ClientHandler(Socket s, DataInputStream is, DataOutputStream os, ChatRoomServer server) { 
         this.is = is; 
         this.os = os; 
         this.s = s; 
@@ -40,21 +39,9 @@ class ClientHandler implements Runnable
     {
     	return os;
     }
-    public ClientHandler getPartner()
-    {
-    	return this.partner;
-    }
-    public void setPartner(ClientHandler ch)
-    {
-    	this.partner = ch;
-    }
     public void send(String message) throws IOException
     {
     	os.writeBytes(message + "\r\n");
-    }
-    public void sendPartner(String message)throws IOException
-    {
-    	partner.getOs().writeBytes(message);
     }
     public void sendAll(ArrayList<ClientHandler> arr, String message, String name)
     {
@@ -81,23 +68,25 @@ class ClientHandler implements Runnable
     	}
     }
     public void run() { 
-    	
+
     	try {
-    		
+
 			send("Welcome to the chat! Please enter your name: ");
 			name = in.readLine();
 			send("Hello " + name + ", if you ever want to quit just enter {quit}");
 			System.out.println(name + " has joined the chat!");
-			sendPartner("You are chatting with " + this.name);
-			
+			allMessage(" has joined the chat!", server.getArray(), name);
+
+
+
 			String message = in.readLine();
-			
-	        
+
+
 	        while (true)  
 	        { 
 	            sendAll(server.getArray(), message, name);
 	            message = in.readLine();
-	            
+
 	            if(message.equals("{quit}"))
 	            {
 	            	send(name + " has left the chat");
@@ -110,12 +99,12 @@ class ClientHandler implements Runnable
 	            	break;
 	            }
 	        }
-			
+
 		} catch (IOException e1) {
 			System.out.println(name + " has left the chat");
 			allMessage(" has left the chat", server.getArray(), name);
 		}	
-	
-              
+
+
     } 
-} 
+}  
