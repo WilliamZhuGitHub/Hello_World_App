@@ -93,7 +93,7 @@ class ClientHandler implements Runnable
     	
     	try {
     		
-			send("Welcome to the chat! Please enter your name: ");
+			send("Welcome to Hello_World! Please enter your name: ");
 			name = in.readLine();
 			send("Hello " + name + ", if you ever want to quit just enter {quit}");
 			if(matched == false)
