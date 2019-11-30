@@ -44,6 +44,10 @@ class ClientHandler implements Runnable
     {
     	return os;
     }
+    public void setMatched()
+    {
+    	this.matched = true;
+    }
     public ClientHandler getPartner()
     {
     	return this.partner;
