@@ -21,12 +21,18 @@ class ClientHandler implements Runnable
     boolean isloggedin;
     ChatRoomServer server;
 
-    public ClientHandler(Socket s, DataInputStream is, DataOutputStream os, ChatRoomServer server) { 
+    private ClientHandler partner;
+    private boolean matched;
+    
+    public ClientHandler(Socket s, DataInputStream is, DataOutputStream os, ChatRoomServer server, ClientHandler partner) { 
+    
         this.is = is; 
         this.os = os; 
         this.s = s; 
         this.isloggedin=true;
         this.server = server;
+        this.partner = null;
+        this.matched = false;
         try {
 			this.in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		} catch (IOException e) {}	
@@ -39,6 +45,17 @@ class ClientHandler implements Runnable
     {
     	return os;
     }
+
+    public ClientHandler getPartner()
+    {
+    	return this.partner;
+    }
+    public void setPartner(ClientHandler ch)
+    {
+    	this.partner = ch;
+    	this.matched = true;
+    }
+
     public void send(String message) throws IOException
     {
     	os.writeBytes(message + "\r\n");
@@ -74,17 +91,23 @@ class ClientHandler implements Runnable
 			send("Welcome to the chat! Please enter your name: ");
 			name = in.readLine();
 			send("Hello " + name + ", if you ever want to quit just enter {quit}");
-			System.out.println(name + " has joined the chat!");
-			allMessage(" has joined the chat!", server.getArray(), name);
 
-
+			if(matched == false)
+			{
+				send("Please wait while we connect you to a partner");
+			}
+			else
+			{
+				send("You are connected with " + this.partner.name);
+			}
+			
 
 			String message = in.readLine();
 
 
 	        while (true)  
 	        { 
-	            sendAll(server.getArray(), message, name);
+	            sendPartner(message);
 	            message = in.readLine();
 
 	            if(message.equals("{quit}"))

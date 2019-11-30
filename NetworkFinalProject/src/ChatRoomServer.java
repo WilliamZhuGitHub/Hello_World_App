@@ -7,7 +7,9 @@ import java.util.ArrayList;
 
 public class ChatRoomServer  
 { 
-    static ArrayList<ClientHandler> arr = new ArrayList<ClientHandler>();
+    static ArrayList<ClientHandler> connected = new ArrayList<ClientHandler>();//connected clients
+    static ArrayList<ClientHandler> matched =  new ArrayList<ClientHandler>();//matched clients
+    static Randomizer r = new Randomizer(connected);
     ServerSocket ss;
 
     public ChatRoomServer(int port) throws IOException
@@ -20,14 +22,14 @@ public class ChatRoomServer
     }
     public ArrayList<ClientHandler> getArray()
     {
-    	return arr;
+    	return connected;
     }
     public static void sendAll(String message)
     {
-    	for(int i = 0; i < arr.size(); i ++)
+    	for(int i = 0; i < connected.size(); i ++)
     	{
     		try {
-    			arr.get(i).getOs().writeBytes(message + "\r\n");
+    			connected.get(i).getOs().writeBytes(message + "\r\n");
     		}catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -49,7 +51,8 @@ public class ChatRoomServer
         while (true)  
         { 
             // Accept the incoming request 
-            sock = ss.accept(); 
+            sock = ss.accept();
+            r.setArr(connected);
             DataInputStream is = new DataInputStream(sock.getInputStream()); 
             DataOutputStream os = new DataOutputStream(sock.getOutputStream()); 
 
@@ -57,7 +60,13 @@ public class ChatRoomServer
             ClientHandler ch = new ClientHandler(sock, is, os, server); 
 
             Thread t = new Thread(ch);
-            arr.add(ch); 
+            connected.add(ch);
+            ClientHandler m = r.match();
+            if(m != null)
+            {
+            	connected.remove(m);
+            	connected.remove(m.getPartner());
+            }
             t.start();
         } 
     } 
